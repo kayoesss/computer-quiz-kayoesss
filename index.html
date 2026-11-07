@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Camp Quiz - กิจกรรมตอบคำถามไอที</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        .glass {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="p-4 border-b border-slate-800 bg-slate-900/60 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-cyan-500 p-2 rounded-lg text-slate-950 font-bold">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-cyan-400">CS CAMP QUIZ</h1>
+                    <p class="text-xs text-slate-400">กิจกรรมตอบคำถามชิงตังค่าย</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleQRModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-lg text-xs flex items-center gap-1 border border-slate-700 transition" title="แสกนเข้าเว็บ">
+                    <i class="fa-solid fa-qrcode text-cyan-400"></i>
+                    <span class="hidden sm:inline">QR Code</span>
+                </button>
+                <button onclick="promptStaffReset()" class="text-slate-600 hover:text-slate-400 p-2 text-xs transition" title="สำหรับสตาฟรีเซ็ต">
+                    <i class="fa-solid fa-lock"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-xl">
+
+            <!-- SCREEN 1: USER REGISTRATION & DIFFICULTY SELECTION -->
+            <div id="screen-select" class="glass rounded-2xl p-6 shadow-2xl space-y-6">
+                <div class="text-center space-y-2">
+                    <span class="bg-cyan-500/10 text-cyan-400 text-xs font-semibold px-3 py-1 rounded-full border border-cyan-500/20">
+                        ลงทะเบียนเข้าทดสอบ
+                    </span>
+                    <h2 class="text-2xl font-bold">กรอกข้อมูลผู้เข้าทำกิจกรรม</h2>
+                    <p class="text-slate-400 text-sm">
+                        มี 10 ข้อ เวลา 5 นาที <span class="text-amber-400 font-semibold">ผ่าน 6 ข้อขึ้นไป</span> รับตังค่ายทันที!
+                    </p>
+                </div>
+
+                <!-- Registration Form -->
+                <div class="space-y-4 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">ชื่อ - นามสกุล *</label>
+                        <input type="text" id="user-fullname" placeholder="ตัวอย่าง: เด็กชายสมชาย ใจดี" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">ระดับชั้น *</label>
+                            <select id="user-grade" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+                                <option value="">-- เลือกชั้น --</option>
+                                <option value="ม.1">มัธยมศึกษาปีที่ 1</option>
+                                <option value="ม.2">มัธยมศึกษาปีที่ 2</option>
+                                <option value="ม.3">มัธยมศึกษาปีที่ 3</option>
+                                <option value="ม.4">มัธยมศึกษาปีที่ 4</option>
+                                <option value="ม.5">มัธยมศึกษาปีที่ 5</option>
+                                <option value="ม.6">มัธยมศึกษาปีที่ 6</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">ห้อง / กลุ่ม</label>
+                            <input type="text" id="user-room" placeholder="เช่น 1 หรือ กลุ่ม A" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 transition">
+                        </div>
+                    </div>
+                    <p id="reg-error" class="hidden text-xs text-rose-400 font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i>กรุณากรอกชื่อ-นามสกุล และเลือกชั้นเรียนก่อนเริ่มเล่น</p>
+                </div>
+
+                <!-- Difficulty Selection -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">เลือกระดับความยาก:</label>
+                    
+                    <button onclick="startQuiz('easy')" class="w-full group relative overflow-hidden bg-slate-900 border border-emerald-500/30 hover:border-emerald-500 p-4 rounded-xl text-left transition duration-300 shadow-lg hover:shadow-emerald-500/10 flex justify-between items-center">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-emerald-400 font-bold text-lg">ระดับง่าย (Easy)</span>
+                                <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded">ม.ต้น</span>
+                            </div>
+                            <p class="text-xs text-slate-400">คอมพิวเตอร์พื้นฐาน ไอที ไอคอน และอุปกรณ์</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-2xl font-extrabold text-emerald-400">1 ใบ</span>
+                            <span class="text-[10px] text-slate-400">ตังค่าย</span>
+                        </div>
+                    </button>
+
+                    <button onclick="startQuiz('medium')" class="w-full group relative overflow-hidden bg-slate-900 border border-amber-500/30 hover:border-amber-500 p-4 rounded-xl text-left transition duration-300 shadow-lg hover:shadow-amber-500/10 flex justify-between items-center">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-amber-400 font-bold text-lg">ระดับปานกลาง (Medium)</span>
+                                <span class="bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded">ม.ต้น-ม.ปลาย</span>
+                            </div>
+                            <p class="text-xs text-slate-400">เครือข่าย, เลขฐาน, ลอจิกเกต, OS</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-2xl font-extrabold text-amber-400">2 ใบ</span>
+                            <span class="text-[10px] text-slate-400">ตังค่าย</span>
+                        </div>
+                    </button>
+
+                    <button onclick="startQuiz('hard')" class="w-full group relative overflow-hidden bg-slate-900 border border-rose-500/30 hover:border-rose-500 p-4 rounded-xl text-left transition duration-300 shadow-lg hover:shadow-rose-500/10 flex justify-between items-center">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-rose-400 font-bold text-lg">ระดับยาก (Hard)</span>
+                                <span class="bg-rose-500/20 text-rose-300 text-xs px-2 py-0.5 rounded">ม.ปลาย</span>
+                            </div>
+                            <p class="text-xs text-slate-400">การเขียนโค้ด, อัลกอริทึม, AI & Cyber</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-2xl font-extrabold text-rose-400">3 ใบ</span>
+                            <span class="text-[10px] text-slate-400">ตังค่าย</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SCREEN 2: QUIZ INTERFACE -->
+            <div id="screen-quiz" class="hidden glass rounded-2xl p-6 shadow-2xl space-y-6">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs text-slate-400 font-semibold">
+                        <span id="quiz-level-tag" class="uppercase tracking-wider">LEVEL</span>
+                        <div id="timer-box" class="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1 rounded-full text-cyan-400 border border-slate-700">
+                            <i class="fa-solid fa-clock"></i>
+                            <span id="timer-display" class="font-mono font-bold text-sm">05:00</span>
+                        </div>
+                        <span id="quiz-progress-text">ข้อ 1 / 10</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="quiz-progress-bar" class="bg-cyan-500 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <div class="min-h-[80px] flex items-center">
+                    <h3 id="question-text" class="text-lg font-semibold text-slate-100 leading-relaxed">
+                        กำลังโหลดคำถาม...
+                    </h3>
+                </div>
+
+                <div id="options-container" class="grid gap-3"></div>
+
+                <button id="btn-next" onclick="nextQuestion()" disabled class="w-full py-3.5 rounded-xl font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed transition duration-200">
+                    ข้อถัดไป <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+            <!-- SCREEN 3: RESULT & VOUCHER -->
+            <div id="screen-result" class="hidden glass rounded-2xl p-6 shadow-2xl space-y-6 text-center">
+                <div id="result-header" class="space-y-2"></div>
+
+                <!-- Voucher Ticket -->
+                <div id="voucher-card" class="hidden relative overflow-hidden bg-gradient-to-br from-amber-500/20 via-slate-900 to-amber-900/30 border-2 border-amber-500/50 rounded-2xl p-6 text-slate-100 shadow-xl space-y-4">
+                    <div class="border-b border-amber-500/30 pb-3 flex justify-between items-start">
+                        <div class="text-left">
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-amber-400">คูปองแลกเงินรางวัล</span>
+                            <h4 class="font-bold text-xl text-amber-200">บัตรรับตังค่าย</h4>
+                            <p id="voucher-user-info" class="text-xs text-amber-300/80 mt-1"></p>
+                        </div>
+                        <i class="fa-solid fa-ticket text-3xl text-amber-400"></i>
+                    </div>
+
+                    <div class="py-2">
+                        <span class="text-xs text-slate-400">จำนวนตังค่ายที่ได้รับ</span>
+                        <div class="text-5xl font-black text-amber-400 tracking-tight my-1" id="voucher-amount">0 ใบ</div>
+                        <span id="voucher-level-text" class="text-xs text-amber-300 font-medium bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-500/30 inline-block">
+                            ระดับ: EASY
+                        </span>
+                    </div>
+
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-amber-500/30 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">รหัสอ้างอิงสตาฟ:</span>
+                        <span id="voucher-code" class="font-mono font-bold text-amber-300 text-sm tracking-widest">CS-0000</span>
+                    </div>
+
+                    <p class="text-[11px] text-amber-300/80 italic">⚡ โปรดยื่นหน้าจอนี้ให้พี่สตาฟเพื่อรับตังค่ายทันที</p>
+                </div>
+            </div>
+
+            <!-- SCREEN 4: ALREADY TAKEN LOCK -->
+            <div id="screen-locked" class="hidden glass rounded-2xl p-8 shadow-2xl text-center space-y-4">
+                <div class="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto text-3xl border border-rose-500/30">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-100">คุณได้ทำแบบทดสอบไปแล้ว</h3>
+                <p id="locked-user-name" class="text-sm font-semibold text-cyan-400"></p>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    ระบบจำกัดให้ผู้เล่นตอบคำถามได้เพียง 1 ครั้งเท่านั้น หากมีปัญหาหรือข้อสงสัย โปรดติดต่อพี่สตาฟประจำกิจกรรม
+                </p>
+                <div id="locked-voucher-area" class="pt-2"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- QR Modal -->
+    <div id="qr-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass max-w-sm w-full p-6 rounded-2xl text-center space-y-4 relative border border-slate-700">
+            <button onclick="toggleQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-lg font-bold text-cyan-400">สแกนเข้าทำกิจกรรม</h3>
+            <div class="bg-white p-4 rounded-xl inline-block mx-auto shadow-lg" id="qrcode-box"></div>
+            <p class="text-xs text-slate-400">ให้น้องๆ สแกน QR Code นี้เพื่อเข้าทำแบบทดสอบ</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="p-4 text-center text-xs text-slate-500 border-t border-slate-800/50">
+        Computer Camp Quiz App &copy; 2026 - สตาฟค่ายคอมพิวเตอร์
+    </footer>
+
+    <script>
+        const questionBank = {
+            easy: [
+                { q: "อุปกรณ์ใดทำหน้าที่เป็นสมองหลักในการประมวลผลของคอมพิวเตอร์?", options: ["CPU", "RAM", "Harddisk", "Monitor"], answer: 0 },
+                { q: "ข้อใดเป็นหน่วยความจำชั่วคราวที่จะสูญหายเมื่อปิดเครื่อง?", options: ["RAM", "ROM", "SSD", "Flash Drive"], answer: 0 },
+                { q: "ปุ่มคีย์ลัดสำหรับคัดลอก (Copy) ข้อความคือข้อใด?", options: ["Ctrl + C", "Ctrl + V", "Ctrl + X", "Ctrl + Z"], answer: 0 },
+                { q: "อุปกรณ์ใดจัดเป็นหน่วยส่งออกข้อมูล (Output Device)?", options: ["จอภาพ (Monitor)", "เมาส์ (Mouse)", "คีย์บอร์ด (Keyboard)", "สแกนเนอร์ (Scanner)"], answer: 0 },
+                { q: "ข้อใดคือระบบปฏิบัติการสำหรับสมาร์ทโฟน?", options: ["Android", "Windows 11", "Ubuntu", "MS-DOS"], answer: 0 },
+                { q: "1 Byte มีค่าเท่ากับกี่ Bit?", options: ["8 Bit", "4 Bit", "16 Bit", "32 Bit"], answer: 0 },
+                { q: "โปรแกรมใดเหมาะสำหรับการทำสไลด์นำเสนอผลงาน?", options: ["Microsoft PowerPoint", "Microsoft Excel", "Microsoft Word", "Notepad"], answer: 0 },
+                { q: "สัญลักษณ์ใดที่ใช้เชื่อมต่อ Wi-Fi ในอุปกรณ์ไอที?", options: ["คลื่นสัญญาณกระจาย", "ลูกศรชี้ขึ้นลง", "รูปแม่กุญแจ", "รูปบลูทูธ"], answer: 0 },
+                { q: "นามสกุลไฟล์รูปภาพที่นิยมใช้คือข้อใด?", options: [".JPG / .PNG", ".MP3", ".DOCX", ".EXE"], answer: 0 },
+                { q: "ข้อใดเป็นฮาร์ดแวร์ (Hardware)?", options: ["เมาส์", "Google Chrome", "Windows", "Photoshop"], answer: 0 },
+                { q: "ข้อใดเป็นซอฟต์แวร์ (Software)?", options: ["Web Browser", "แป้นพิมพ์", "เมนบอร์ด", "การ์ดแสดงผล"], answer: 0 },
+                { q: "เว็บเบราว์เซอร์ (Web Browser) มีหน้าที่อะไร?", options: ["ท่องอินเทอร์เน็ต", "พิมพ์งานเอกสาร", "ตัดต่อวิดีโอ", "สแกนไวรัส"], answer: 0 },
+                { q: "ปุ่ม Paste บนคีย์บอร์ดกดคีย์ลัดอย่างไร?", options: ["Ctrl + V", "Ctrl + P", "Ctrl + A", "Ctrl + S"], answer: 0 },
+                { q: "อุปกรณ์ใดใช้เก็บข้อมูลแบบพกพาขนาดเล็ก?", options: ["Flash Drive", "Power Supply", "CPU", "LAN Cable"], answer: 0 },
+                { q: "สัญลักษณ์ @ มักพบในบริการใด?", options: ["อีเมล (E-mail)", "เครื่องคิดเลข", "เกมคอมพิวเตอร์", "การพิมพ์งาน"], answer: 0 },
+                { q: "การทำ Clean History ในเบราว์เซอร์มีประโยชน์อย่างไร?", options: ["ลบประวัติการท่องเว็บ", "เพิ่มความเร็วอินเทอร์เน็ตบ้าน", "ทำให้จอคอมใสขึ้น", "ชาร์จแบตไวขึ้น"], answer: 0 },
+                { q: "ข้อใดไม่ใช่ชื่อของโซเชียลมีเดีย?", options: ["Windows OS", "Facebook", "TikTok", "Instagram"], answer: 0 },
+                { q: "คำว่า World Wide Web ย่อมาจากอะไร?", options: ["WWW", "WEB", "W3C", "WIFI"], answer: 0 },
+                { q: "อุปกรณ์ใดทำหน้าที่จ่ายไฟให้กับชิ้นส่วนภายในคอมพิวเตอร์?", options: ["Power Supply", "Harddisk", "VGA Card", "Sound Card"], answer: 0 },
+                { q: "ข้อใดคือการตั้งรหัสผ่านที่ปลอดภัยที่สุด?", options: ["P@ssw0rd2026!", "12345678", "password", "วันเดือนปีเกิด"], answer: 0 },
+                { q: "เครื่องพิมพ์ (Printer) จัดเป็นอุปกรณ์ประเภทใด?", options: ["Output Device", "Input Device", "Storage Device", "Processing Device"], answer: 0 },
+                { q: "การ Save งานไฟล์ฉุกเฉินควรกดคีย์ลัดอะไร?", options: ["Ctrl + S", "Ctrl + N", "Ctrl + O", "Ctrl + W"], answer: 0 },
+                { q: "ข้อใดเป็นเสิร์ชเอนจิน (Search Engine)?", options: ["Google", "Word", "Excel", "Calculator"], answer: 0 },
+                { q: "ปุ่ม F5 บนแป้นพิมพ์เมื่ออยู่ในเว็บเบราว์เซอร์มีไว้ทำอะไร?", options: ["Refresh หน้าเว็บ", "ปิดหน้าต่าง", "เปิดแท็บใหม่", "ค้นหาคำ"], answer: 0 },
+                { q: "การ Reboot คอมพิวเตอร์หมายถึงข้อใด?", options: ["การรีสตาร์ทเครื่องใหม่", "การลบไฟล์ทั้งหมด", "การปิดเครื่องถาวร", "การเปิดโปรแกรม"], answer: 0 },
+                { q: "มัลแวร์ (Malware) คืออะไร?", options: ["โปรแกรมประสงค์ร้าย", "โปรแกรมแต่งรูป", "ระบบรักษาความปลอดภัย", "อุปกรณ์คอมพิวเตอร์"], answer: 0 },
+                { q: "ข้อใดคือหน่วยวัดความเร็วอินเทอร์เน็ต?", options: ["Mbps", "GB", "Watts", "Pixels"], answer: 0 },
+                { q: "กล้องเว็บแคม (Webcam) จัดเป็นอุปกรณ์ประเภทใด?", options: ["Input Device", "Output Device", "Storage Device", "Power Device"], answer: 0 },
+                { q: "โฟลเดอร์ (Folder) มีหน้าที่ไว้ทำอะไร?", options: ["จัดเก็บและรวบรวมไฟล์", "ประมวลผลกราฟิก", "เชื่อมต่อสัญญาณ", "กระจายเสียง"], answer: 0 },
+                { q: "ข้อใดคือชื่อของระบบปฏิบัติการคอมพิวเตอร์?", options: ["macOS", "Safari", "Intel", "NVIDIA"], answer: 0 }
+            ],
+            medium: [
+                { q: "เลขฐานสอง (Binary) ประกอบด้วยตัวเลขใดบ้าง?", options: ["0 และ 1", "1 และ 2", "0 ถึง 9", "0 ถึง 7"], answer: 0 },
+                { q: "IP Address เวอร์ชัน 4 (IPv4) มีกี่บิต?", options: ["32 บิต", "64 บิต", "128 บิต", "16 บิต"], answer: 0 },
+                { q: "ลอจิกเกต (Logic Gate) ประเภท AND จะให้ผลลัพธ์เป็น 1 เมื่อใด?", options: ["เมื่อ Input ทุกตัวเป็น 1", "เมื่อ Input ตัวใดตัวหนึ่งเป็น 1", "เมื่อ Input เป็น 0 ทั้งหมด", "เมื่อ Input มีค่าต่างกัน"], answer: 0 },
+                { q: "สาย LAN ที่นิยมใช้ทั่วไปใช้หัวเชื่อมต่อแบบใด?", options: ["RJ-45", "USB-C", "HDMI", "VGA"], answer: 0 },
+                { q: "ข้อใดคือโปรโตคอลที่ส่งข้อมูลแบบเข้ารหัสปลอดภัยบนเว็บไซต์?", options: ["HTTPS", "HTTP", "FTP", "TELNET"], answer: 0 },
+                { q: "เลขฐานสอง 1010 มีค่าเท่ากับเท่าไรในเลขฐานสิบ?", options: ["10", "8", "12", "6"], answer: 0 },
+                { q: "DNS (Domain Name System) มีหน้าที่อะไร?", options: ["แปลชื่อโดเมนเป็น IP Address", "ป้องกันไวรัสคอมพิวเตอร์", "จัดเก็บไฟล์ในคลาวด์", "คำนวณความเร็วเน็ต"], answer: 0 },
+                { q: "ระบบปฏิบัติการใดเป็นซอฟต์แวร์แบบโอเพ่นซอร์ส (Open Source)?", options: ["Linux", "Windows 11", "macOS", "iOS"], answer: 0 },
+                { q: "ข้อใดไม่ใช่พอร์ตสำหรับส่งสัญญาณภาพ?", options: ["SATA", "HDMI", "DisplayPort", "VGA"], answer: 0 },
+                { q: "Phishing คือรูปแบบการโจมตีแบบใด?", options: ["หลอกลวงเพื่อเอาข้อมูลส่วนตัว", "ส่งไวรัสไปทำลายฮาร์ดดิสก์", "ดักฟังพาสเวิร์ดผ่าน Wi-Fi", "ทำให้คอมพิวเตอร์ติดดับ"], answer: 0 },
+                { q: "Firewall มีหน้าที่หลักอย่างไรในระบบเครือข่าย?", options: ["กรองและกรองทราฟฟิกตามกฎความปลอดภัย", "กระจายสัญญาณ Wi-Fi", "เพิ่มความจุของ RAM", "สำรองข้อมูลอัตโนมัติ"], answer: 0 },
+                { q: "สัญลักษณ์ '!=' ในการเขียนโปรแกรมส่วนใหญ่มีความหมายว่าอะไร?", options: ["ไม่เท่ากับ", "เท่ากับ", "มากกว่าหรือเท่ากับ", "กำหนดค่า"], answer: 0 },
+                { q: "เลขฐานสิบหก (Hexadecimal) ใช้สัญลักษณ์ตัวเลขและตัวอักษรใดบ้าง?", options: ["0-9 และ A-F", "0-9 และ A-Z", "1-16", "0-7 และ A-D"], answer: 0 },
+                { q: "ข้อใดคือโครงสร้างข้อมูลแบบ LIFO (Last-In, First-Out)?", options: ["Stack", "Queue", "Array", "Tree"], answer: 0 },
+                { q: "ข้อใดคือโครงสร้างข้อมูลแบบ FIFO (First-In, First-Out)?", options: ["Queue", "Stack", "Graph", "Binary Tree"], answer: 0 },
+                { q: "คำสั่ง ping ใน Command Line มีไว้ทำอะไร?", options: ["ทดสอบการเชื่อมต่อกับปลายทาง", "ปิดเครื่องคอมพิวเตอร์", "ลบไฟล์ขยะ", "แสดงรายชื่อไฟล์"], answer: 0 },
+                { q: "Cloud Storage ข้อใดให้บริการโดย Google?", options: ["Google Drive", "OneDrive", "iCloud", "Dropbox"], answer: 0 },
+                { q: "SSD ต่างจาก HDD อย่างไร?", options: ["SSD เร็วกว่าและไม่มีจานหมุน", "SSD ราคาถูกกว่าจุมากกว่า", "HDD อ่านข้อมูลเร็วกว่า", "SSD ใช้เฉพาะกับมือถือ"], answer: 0 },
+                { q: "พอร์ตมาตรฐานใดส่งได้ทั้งสัญญาณภาพและเสียง?", options: ["HDMI", "VGA", "DVI", "PS/2"], answer: 0 },
+                { q: "การบีบอัดไฟล์แบบ Zip มีวัตถุประสงค์เพื่ออะไร?", options: ["ลดขนาดไฟล์และรวบรวมไฟล์", "เพิ่มความคมชัด", "ซ่อนไฟล์จากไวรัส", "แปลงไฟล์เป็น PDF"], answer: 0 },
+                { q: "ลอจิกเกต NOT Gate ทำหน้าที่อะไร?", options: ["กลับสัญญาณ (Invert)", "รวมสัญญาณ", "คูณสัญญาณ", "คงค่าสัญญาณเดิม"], answer: 0 },
+                { q: "ตัวแปรประเภท Boolean สามารถเก็บค่าอะไรได้บ้าง?", options: ["True หรือ False", "ตัวเลขจำนวนเต็ม", "ข้อความยาวๆ", "ทศนิยม"], answer: 0 },
+                { q: "หน่วยความจำประเภท ROM มีลักษณะเฉพาะอย่างไร?", options: ["อ่านได้อย่างเดียว ข้อมูลไม่หายเมื่อปิดเครื่อง", "เขียนข้อมูลได้รวดเร็วที่สุด", "เก็บข้อมูลชั่วคราวขณะเปิดเครื่อง", "ต้องต่อไฟเลี้ยงตลอดเวลา"], answer: 0 },
+                { q: "ข้อใดคือโดเมนระดับบนสุด (TLD) สำหรับสถาบันการศึกษาในไทย?", options: [".ac.th", ".co.th", ".go.th", ".or.th"], answer: 0 },
+                { q: "MAC Address มีความยาวกี่บิต?", options: ["48 บิต", "32 บิต", "64 บิต", "128 บิต"], answer: 0 },
+                { q: "คำว่า IoT ย่อมาจากอะไร?", options: ["Internet of Things", "Input Output Technology", "Internal Operating Time", "Information on Transfer"], answer: 0 },
+                { q: "ข้อใดคือหน้าที่ของ Router?", options: ["หาเส้นทางและส่งต่อแพ็กเก็ตข้อมูล", "ขยายสัญญาณเสียง", "แปลงไฟล์เอกสาร", "เก็บข้อมูลเว็บ"], answer: 0 },
+                { q: "ภาษาโปรแกรมมิ่งใดที่นิยมใช้จัดการฐานข้อมูลเชิงสัมพันธ์?", options: ["SQL", "HTML", "CSS", "JSON"], answer: 0 },
+                { q: "โปรโตคอล DHCP มีหน้าที่อะไร?", options: ["แจกจ่าย IP Address อัตโนมัติ", "ส่งอีเมล", "โอนย้ายไฟล์", "แปลชื่อเว็บ"], answer: 0 },
+                { q: "ข้อใดเป็นการประมวลผลแบบขนาน (Parallel Processing)?", options: ["การประมวลผลพร้อมกันหลายงาน", "การทำงานตามลำดับทีละขั้นตอน", "การทำงานเมื่อมีคำสั่งกดสวิตช์", "การประมวลผลแบบออฟไลน์"], answer: 0 }
+            ],
+            hard: [
+                { q: "ความซับซ้อนเชิงเวลา (Time Complexity) ของ Binary Search คือเท่าใด?", options: ["O(log n)", "O(n)", "O(n^2)", "O(1)"], answer: 0 },
+                { q: "การโจมตีแบบ DDoS คืออะไร?", options: ["การส่งทราฟฟิกมหาศาลถล่มเซิร์ฟเวอร์จนล่ม", "การแฮกเข้าฐานข้อมูลโดยตรง", "การขโมยรหัสผ่านผ่านคุกกี้", "การแก้ไขหน้าเว็บเพจ"], answer: 0 },
+                { q: "ในภาษา Python ผลลัพธ์ของ `print(2 ** 3)` คือข้อใด?", options: ["8", "6", "9", "5"], answer: 0 },
+                { q: "เทคนิค SQL Injection ใช้ช่องโหว่ใดในการโจมตี?", options: ["การกรอกโค้ด SQL ผ่านช่อง Input ของเว็บ", "การดักจับแพ็กเก็ต Wi-Fi", "การหลอกลวงด้วยอีเมลปลอม", "การถอดรหัสไฟล์แบบ Brute Force"], answer: 0 },
+                { q: "โครงสร้างข้อมูลแบบใดที่ใช้หลักการ LIFO และมักใช้จัดการ Function Call Stack?", options: ["Stack", "Queue", "Linked List", "Heap"], answer: 0 },
+                { q: "ในระบบฐานข้อมูล ACID คุณสมบัติ 'A' ย่อมาจากอะไร?", options: ["Atomicity", "Availability", "Authentication", "Algorithm"], answer: 0 },
+                { q: "ข้อใดคือความแตกต่างระหว่าง HTTP/1.1 และ HTTP/2?", options: ["HTTP/2 รองรับ Multiplexing บน Connection เดียว", "HTTP/2 ไม่ใช้ TCP", "HTTP/1.1 ปลอดภัยกว่า", "HTTP/2 ส่งได้เฉพาะข้อความ"], answer: 0 },
+                { q: "การเข้ารหัสแบบ Asymmetric Encryption ใช้กุญแจกี่ดอก?", options: ["2 ดอก (Public & Private Key)", "1 ดอก (Symmetric Key)", "3 ดอก", "ไม่ต้องใช้กุญแจ"], answer: 0 },
+                { q: "โมเดล OSI Model มีทั้งหมดกี่ Layer?", options: ["7 Layers", "5 Layers", "4 Layers", "6 Layers"], answer: 0 },
+                { q: "ในภาษา C++ ตัวชี้ (Pointer) ใช้สัญลักษณ์ใดในการประกาศ?", options: ["*", "&", "#", "$"], answer: 0 },
+                { q: "อัลกอริทึมการเรียงลำดับใดมีความซับซ้อนเฉลี่ย (Average Case) เป็น O(n log n)?", options: ["Quick Sort", "Bubble Sort", "Insertion Sort", "Selection Sort"], answer: 0 },
+                { q: "ในทาง Cybersecurity คำว่า 'Zero-Day Vulnerability' หมายถึงอะไร?", options: ["ช่องโหว่ที่ยังไม่มีแพตช์แก้ไขจากผู้พัฒนา", "การโจมตีที่เกิดขึ้นตอนเที่ยงคืน", "ไวรัสที่ทำลายเครื่องภายใน 0 วินาที", "ช่องโหว่เก่าที่ถูกแก้แล้ว"], answer: 0 },
+                { q: "Container Technology ที่ได้รับความนิยมสูงในการทำ DevOps คืออะไร?", options: ["Docker", "VirtualBox", "VMware", "Apache"], answer: 0 },
+                { q: "ฟังก์ชันแบบ Recursive ในการเขียนโปรแกรมคืออะไร?", options: ["ฟังก์ชันที่เรียกตัวเอง", "ฟังก์ชันที่ไม่คืนค่า", "ฟังก์ชันที่ทำงานไม่มีวันจบ", "ฟังก์ชันที่ทำงานขนานกัน"], answer: 0 },
+                { q: "ในโครงสร้างข้อมูล Tree โหนดที่ไม่มีลูกเรียกว่าอะไร?", options: ["Leaf Node", "Root Node", "Parent Node", "Internal Node"], answer: 0 },
+                { q: "ข้อใดคือพอร์ตมาตรฐานของ SSH (Secure Shell)?", options: ["Port 22", "Port 80", "Port 443", "Port 21"], answer: 0 },
+                { q: "ในภาษา Python โครงสร้างข้อมูลชนิดใดที่ไม่สามารถแก้ไขค่าได้ (Immutable)?", options: ["Tuple", "List", "Dictionary", "Set"], answer: 0 },
+                { q: "แนวคิด Git Version Control คำสั่ง `git commit` ทำหน้าที่อะไร?", options: ["บันทึกการเปลี่ยนแปลงลงใน Local Repository", "ดึงโค้ดล่าสุดจาก Server", "อัปโหลดโค้ดขึ้น GitHub", "สร้าง Branch ใหม่"], answer: 0 },
+                { q: "การแฮช (Hashing) ต่างจากการเข้ารหัส (Encryption) อย่างไร?", options: ["Hashing ทำแบบทางเดียว แปลงกลับไม่ได้", "Encryption ไม่ใช้กุญแจ", "Hashing สถิติถอดรหัสได้ง่ายกว่า", "เหมือนกันทุกประการ"], answer: 0 },
+                { q: "ในเรื่อง AI & Machine Learning คำว่า 'Overfitting' หมายถึงอะไร?", options: ["โมเดลแม่นยำกับข้อมูลเทรนแต่แย่กับข้อมูลจริง", "โมเดลประมวลผลช้าเกินไป", "โมเดลเรียนรู้ข้อมูลไม่พอ", "โมเดลมีขนาดไฟล์ใหญ่เกินไป"], answer: 0 },
+                { q: "โปรโตคอล TCP ต่างจาก UDP อย่างไร?", options: ["TCP มีการจับมือยืนยันข้อมูล (Handshake) การันตีถึงถูกต้อง", "UDP ช้ากว่า TCP", "TCP นิยมใช้กับ Video Streaming Real-time", "UDP ปลอดภัยกว่า TCP"], answer: 0 },
+                { q: "คำศัพท์ Man-in-the-Middle (MitM) Attack คือการโจมตีลักษณะใด?", options: ["การดักแอบฟังและแก้ไขข้อมูลระหว่างสองฝ่าย", "การแฮกเซิร์ฟเวอร์โดยตรง", "การเดารหัสผ่านตัวเลข", "การสร้างไฟล์ขยะเต็มดิสก์"], answer: 0 },
+                { q: "อัลกอริทึมของ Dijkstra ใช้แก้ปัญหาอะไร?", options: ["การหาเส้นทางที่สั้นที่สุด (Shortest Path)", "การเรียงลำดับตัวเลข", "การบีบอัดไฟล์ภาพ", "การค้นหาคำในข้อความ"], answer: 0 },
+                { q: "ในภาษา Python คำสั่ง `len([1, [2, 3], 4])` จะคืนค่าเท่าใด?", options: ["3", "4", "2", "Error"], answer: 0 },
+                { q: "พอร์ตมาตรฐานของ HTTPS คือพอร์ตใด?", options: ["443", "80", "8080", "25"], answer: 0 },
+                { q: "แนวคิด Object-Oriented Programming (OOP) ข้อใดคือการซ่อนรายละเอียดภายใน?", options: ["Encapsulation", "Inheritance", "Polymorphism", "Abstraction"], answer: 0 },
+                { q: "ในระบบ Linux คำสั่ง `chmod 777 filename` หมายความว่าอย่างไร?", options: ["ให้สิทธิ์ทุกคนอ่าน เขียน และรันไฟล์ได้", "ลบไฟล์ออกจากระบบ", "ลบสิทธิ์การเข้าถึงทั้งหมด", "เปลี่ยนเจ้าของไฟล์"], answer: 0 },
+                { q: "คุกกี้ HTTP (HTTP Cookie) แบบ 'SameSite' มีไว้เพื่อป้องกันการโจมตีใด?", options: ["CSRF (Cross-Site Request Forgery)", "SQL Injection", "XSS (Cross-Site Scripting)", "Buffer Overflow"], answer: 0 },
+                { q: "ใน Machine Learning เทคนิค Unsupervised Learning เหมาะกับงานใด?", options: ["การจัดกลุ่มข้อมูลที่ไม่มีป้ายกำกับ (Clustering)", "การทำนายราคาบ้านจากป้ายกำกับ", "การจำแนกภาพแมวกับหมาที่มี Label", "การควบคุมหุ่นยนต์เดิน"], answer: 0 },
+                { q: "เทคโนโลยี Blockchain มีจุดเด่นสำคัญในเรื่องใด?", options: ["ความน่าเชื่อถือแบบกระจายศูนย์และแก้ไขยาก", "ความเร็วในการส่งข้อมูลสูงที่สุด", "ใช้พื้นที่จัดเก็บน้อยมาก", "ไม่ต้องใช้อินเทอร์เน็ต"], answer: 0 }
+            ]
+        };
+
+        const rewards = { easy: 1, medium: 2, hard: 3 };
+
+        let currentLevel = 'easy';
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let selectedOption = null;
+        let timerInterval = null;
+        let timeLeft = 300;
+        let userInfo = { name: '', grade: '', room: '' };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAlreadyTaken();
+            generateQRCodeModal();
+        });
+
+        function shuffle(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function checkAlreadyTaken() {
+            const hasCompleted = localStorage.getItem('cs_quiz_completed');
+            if (hasCompleted === 'true') {
+                showLockedScreen();
+            }
+        }
+
+        function validateRegistration() {
+            const name = document.getElementById('user-fullname').value.trim();
+            const grade = document.getElementById('user-grade').value;
+            const room = document.getElementById('user-room').value.trim();
+            const errEl = document.getElementById('reg-error');
+
+            if (!name || !grade) {
+                errEl.classList.remove('hidden');
+                return false;
+            }
+            errEl.classList.add('hidden');
+            userInfo = { name, grade, room };
+            return true;
+        }
+
+        function saveToGlobalStaffStorage(record) {
+            // Store record in localStorage under key 'cs_camp_all_records' for Staff Dashboard
+            try {
+                let records = JSON.parse(localStorage.getItem('cs_camp_all_records') || '[]');
+                records.push(record);
+                localStorage.setItem('cs_camp_all_records', JSON.stringify(records));
+            } catch(e) {
+                console.error("Storage error:", e);
+            }
+        }
+
+        function startQuiz(level) {
+            if (!validateRegistration()) return;
+
+            if (localStorage.getItem('cs_quiz_completed') === 'true') {
+                showLockedScreen();
+                return;
+            }
+
+            currentLevel = level;
+            const pool = questionBank[level];
+            const shuffledPool = shuffle(pool).slice(0, 10);
+
+            currentQuestions = shuffledPool.map(q => {
+                const optionsWithOrigIndex = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === q.answer }));
+                const shuffledOpts = shuffle(optionsWithOrigIndex);
+                return {
+                    q: q.q,
+                    options: shuffledOpts.map(o => o.text),
+                    answer: shuffledOpts.findIndex(o => o.isCorrect)
+                };
+            });
+
+            currentIndex = 0;
+            score = 0;
+            timeLeft = 300;
+
+            document.getElementById('screen-select').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            document.getElementById('quiz-level-tag').innerText = `LEVEL: ${level.toUpperCase()}`;
+
+            startTimer();
+            renderQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    finishQuiz(true);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            const displayStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            const timerEl = document.getElementById('timer-display');
+            const timerBox = document.getElementById('timer-box');
+            
+            timerEl.innerText = displayStr;
+            if (timeLeft <= 60) {
+                timerBox.classList.remove('text-cyan-400', 'border-slate-700');
+                timerBox.classList.add('text-rose-400', 'border-rose-500/50', 'animate-pulse');
+            }
+        }
+
+        function renderQuestion() {
+            selectedOption = null;
+            const btnNext = document.getElementById('btn-next');
+            btnNext.disabled = true;
+            btnNext.innerText = (currentIndex === 9) ? "ส่งคำตอบแบบทดสอบ" : "ข้อถัดไป";
+
+            const qData = currentQuestions[currentIndex];
+            document.getElementById('quiz-progress-text').innerText = `ข้อ ${currentIndex + 1} / 10`;
+            document.getElementById('quiz-progress-bar').style.width = `${((currentIndex + 1) / 10) * 100}%`;
+            document.getElementById('question-text').innerText = `${currentIndex + 1}. ${qData.q}`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const prefixes = ['ก.', 'ข.', 'ค.', 'ง.'];
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-slate-700 transition flex items-center gap-3 group";
+                btn.onclick = () => selectOption(idx, btn);
+                btn.innerHTML = `
+                    <span class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold group-hover:bg-cyan-500 group-hover:text-slate-950 transition">${prefixes[idx]}</span>
+                    <span class="text-sm text-slate-200 flex-grow">${opt}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectOption(index, btnEl) {
+            selectedOption = index;
+            const container = document.getElementById('options-container');
+            Array.from(container.children).forEach(child => {
+                child.classList.remove('border-cyan-500', 'bg-cyan-500/10');
+                child.classList.add('border-slate-800');
+            });
+            btnEl.classList.remove('border-slate-800');
+            btnEl.classList.add('border-cyan-500', 'bg-cyan-500/10');
+            document.getElementById('btn-next').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (selectedOption === null) return;
+            if (selectedOption === currentQuestions[currentIndex].answer) {
+                score++;
+            }
+            currentIndex++;
+            if (currentIndex < 10) {
+                renderQuestion();
+            } else {
+                finishQuiz(false);
+            }
+        }
+
+        function finishQuiz(isTimeout = false) {
+            clearInterval(timerInterval);
+
+            const isPassed = score >= 6;
+            const ticketAmount = isPassed ? rewards[currentLevel] : 0;
+            const voucherCodeStr = isPassed ? `CS-${Math.random().toString(36).substring(2, 7).toUpperCase()}` : '-';
+            const timestamp = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+            const record = {
+                id: Date.now(),
+                name: userInfo.name,
+                grade: `${userInfo.grade} ${userInfo.room ? '(' + userInfo.room + ')' : ''}`,
+                level: currentLevel.toUpperCase(),
+                score: score,
+                status: isPassed ? 'PASSED' : 'FAILED',
+                reward: ticketAmount,
+                code: voucherCodeStr,
+                time: timestamp
+            };
+
+            // Local user locks
+            localStorage.setItem('cs_quiz_completed', 'true');
+            localStorage.setItem('cs_quiz_score', score);
+            localStorage.setItem('cs_quiz_level', currentLevel);
+            localStorage.setItem('cs_quiz_user', JSON.stringify(userInfo));
+            localStorage.setItem('cs_quiz_voucher_code', voucherCodeStr);
+            localStorage.setItem('cs_quiz_voucher_amount', ticketAmount);
+
+            // Save to shared staff logs
+            saveToGlobalStaffStorage(record);
+
+            showResultScreen(score, isTimeout);
+        }
+
+        function showResultScreen(finalScore, isTimeout) {
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            const headerEl = document.getElementById('result-header');
+            const voucherCard = document.getElementById('voucher-card');
+            const isPassed = finalScore >= 6;
+
+            if (isPassed) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                const vCode = localStorage.getItem('cs_quiz_voucher_code');
+                const vAmount = localStorage.getItem('cs_quiz_voucher_amount');
+
+                headerEl.innerHTML = `
+                    <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl border border-emerald-500/30">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-emerald-400">ยินดีด้วย! คุณผ่านการทดสอบ</h3>
+                    <p class="text-xs text-slate-400">คุณทำได้ ${finalScore} / 10 คะแนน ${isTimeout ? '(หมดเวลา)' : ''}</p>
+                `;
+
+                voucherCard.classList.remove('hidden');
+                document.getElementById('voucher-user-info').innerText = `ผู้ทดสอบ: ${userInfo.name} (${userInfo.grade})`;
+                document.getElementById('voucher-amount').innerText = `${vAmount} ใบ`;
+                document.getElementById('voucher-level-text').innerText = `ระดับ: ${currentLevel.toUpperCase()}`;
+                document.getElementById('voucher-code').innerText = vCode;
+
+            } else {
+                headerEl.innerHTML = `
+                    <div class="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto text-3xl border border-rose-500/30">
+                        <i class="fa-solid fa-xmark"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-rose-400">เสียใจด้วย คุณไม่ผ่านเกณฑ์</h3>
+                    <p class="text-sm text-slate-300">คุณทำได้ <span class="font-bold text-rose-400">${finalScore}</span> / 10 คะแนน (เกณฑ์ผ่าน 6 คะแนน)</p>
+                    <p class="text-xs text-slate-400 mt-2">ไม่ได้รับตังค่าย และไม่สามารถทำซ้ำได้ตามกฎค่าย</p>
+                `;
+                voucherCard.classList.add('hidden');
+            }
+        }
+
+        function showLockedScreen() {
+            document.getElementById('screen-select').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-locked').classList.remove('hidden');
+
+            const score = localStorage.getItem('cs_quiz_score');
+            const level = localStorage.getItem('cs_quiz_level');
+            const vCode = localStorage.getItem('cs_quiz_voucher_code');
+            const vAmount = localStorage.getItem('cs_quiz_voucher_amount');
+            const savedUser = JSON.parse(localStorage.getItem('cs_quiz_user') || '{}');
+
+            if (savedUser.name) {
+                document.getElementById('locked-user-name').innerText = `ผู้ลงทะเบียน: ${savedUser.name} (${savedUser.grade})`;
+            }
+
+            const lockedArea = document.getElementById('locked-voucher-area');
+            if (score && parseInt(score) >= 6 && vCode) {
+                lockedArea.innerHTML = `
+                    <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-amber-300 text-xs space-y-1">
+                        <div class="font-bold text-sm">ผ่านการทดสอบ (${level ? level.toUpperCase() : ''})</div>
+                        <div>ตังค่ายที่ได้รับ: <span class="font-bold text-amber-400 text-base">${vAmount} ใบ</span></div>
+                        <div class="font-mono text-slate-400">รหัสคูปอง: ${vCode}</div>
+                    </div>
+                `;
+            } else if (score) {
+                lockedArea.innerHTML = `
+                    <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-3 text-rose-300 text-xs">
+                        สถานะ: ไม่ผ่านเกณฑ์ (${score}/10 คะแนน)
+                    </div>
+                `;
+            }
+        }
+
+        function promptStaffReset() {
+            const pwd = prompt("สำหรับพี่สตาฟ: กรอกรหัสผ่านเพื่อปลดล็อคเครื่องนี้");
+            if (pwd === "1234") {
+                localStorage.removeItem('cs_quiz_completed');
+                localStorage.removeItem('cs_quiz_score');
+                localStorage.removeItem('cs_quiz_level');
+                localStorage.removeItem('cs_quiz_user');
+                localStorage.removeItem('cs_quiz_voucher_code');
+                localStorage.removeItem('cs_quiz_voucher_amount');
+                alert("ปลดล็อคเรียบร้อย! สามารถเริ่มเล่นใหม่ได้");
+                location.reload();
+            } else if (pwd !== null) {
+                alert("รหัสผ่านไม่ถูกต้อง!");
+            }
+        }
+
+        function toggleQRModal() {
+            document.getElementById('qr-modal').classList.toggle('hidden');
+        }
+
+        function generateQRCodeModal() {
+            const qrBox = document.getElementById('qrcode-box');
+            qrBox.innerHTML = '';
+            new QRCode(qrBox, {
+                text: window.location.href,
+                width: 160,
+                height: 160,
+                colorDark: "#090d16",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+    </script>
+</body>
+</html>
