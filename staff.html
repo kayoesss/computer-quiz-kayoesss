@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Camp Staff Dashboard - แดชบอร์ดสตาฟค่าย</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        .glass {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+
+        <!-- HEADER -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/80 p-6 rounded-2xl border border-slate-800 glass">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-500 p-3 rounded-xl text-slate-950 font-bold text-xl">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-amber-400">STAFF MONITOR DASHBOARD</h1>
+                    <p class="text-xs text-slate-400">ระบบติดตามและตรวจสอบข้อมูลการทำกิจกรรมของน้องๆ ในค่าย</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-lg">
+                    <i class="fa-solid fa-file-excel"></i> ส่งออกไฟล์ Excel / CSV
+                </button>
+                <button onclick="clearData()" class="bg-rose-900/50 hover:bg-rose-800 text-rose-200 border border-rose-700/50 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
+                    <i class="fa-solid fa-trash"></i> ล้างข้อมูล
+                </button>
+            </div>
+        </header>
+
+        <!-- STATS OVERVIEW -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass p-5 rounded-2xl border border-slate-800 space-y-1">
+                <span class="text-slate-400 text-xs font-medium">ผู้เข้าสอบทั้งหมด</span>
+                <div id="stat-total" class="text-3xl font-extrabold text-cyan-400">0 คน</div>
+            </div>
+            <div class="glass p-5 rounded-2xl border border-slate-800 space-y-1">
+                <span class="text-slate-400 text-xs font-medium">สอบผ่านเกณฑ์</span>
+                <div id="stat-passed" class="text-3xl font-extrabold text-emerald-400">0 คน</div>
+            </div>
+            <div class="glass p-5 rounded-2xl border border-slate-800 space-y-1">
+                <span class="text-slate-400 text-xs font-medium">สอบไม่ผ่าน</span>
+                <div id="stat-failed" class="text-3xl font-extrabold text-rose-400">0 คน</div>
+            </div>
+            <div class="glass p-5 rounded-2xl border border-slate-800 space-y-1">
+                <span class="text-slate-400 text-xs font-medium">ตังค่ายที่แจกไปแล้ว</span>
+                <div id="stat-tickets" class="text-3xl font-extrabold text-amber-400">0 ใบ</div>
+            </div>
+        </div>
+
+        <!-- SEARCH & FILTER -->
+        <div class="glass p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-3">
+            <div class="relative flex-grow">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
+                <input type="text" id="search-input" oninput="renderTable()" placeholder="ค้นหาด้วย ชื่อ-สกุล หรือ รหัสคูปอง..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+            </div>
+            <select id="filter-status" onchange="renderTable()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+                <option value="ALL">ทุกสถานะ</option>
+                <option value="PASSED">เฉพาะผ่านเกณฑ์</option>
+                <option value="FAILED">เฉพาะไม่ผ่านเกณฑ์</option>
+            </select>
+        </div>
+
+        <!-- TABLE OF RESULTS -->
+        <div class="glass rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-900/90 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                            <th class="p-4">เวลา</th>
+                            <th class="p-4">ชื่อ - นามสกุล</th>
+                            <th class="p-4">ชั้น / ห้อง</th>
+                            <th class="p-4">ระดับ</th>
+                            <th class="p-4">คะแนน (เต็ม 10)</th>
+                            <th class="p-4">ผลการทดสอบ</th>
+                            <th class="p-4">ตังค่ายที่ได้</th>
+                            <th class="p-4">รหัสแลกตังค่าย</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-800/60 text-slate-200">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="empty-msg" class="hidden p-8 text-center text-slate-500 text-xs">
+                ยังไม่มีข้อมูลผู้เข้าทดสอบในขณะนี้
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTable();
+        });
+
+        function getRecords() {
+            try {
+                return JSON.parse(localStorage.getItem('cs_camp_all_records') || '[]');
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function renderTable() {
+            const records = getRecords();
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const filter = document.getElementById('filter-status').value;
+
+            const tbody = document.getElementById('table-body');
+            const emptyMsg = document.getElementById('empty-msg');
+            tbody.innerHTML = '';
+
+            let filtered = records.filter(r => {
+                const matchSearch = r.name.toLowerCase().includes(search) || r.code.toLowerCase().includes(search);
+                const matchFilter = filter === 'ALL' || r.status === filter;
+                return matchSearch && matchFilter;
+            });
+
+            // Update Statistics
+            document.getElementById('stat-total').innerText = `${records.length} คน`;
+            document.getElementById('stat-passed').innerText = `${records.filter(r => r.status === 'PASSED').length} คน`;
+            document.getElementById('stat-failed').innerText = `${records.filter(r => r.status === 'FAILED').length} คน`;
+            document.getElementById('stat-tickets').innerText = `${records.reduce((sum, r) => sum + (r.reward || 0), 0)} ใบ`;
+
+            if (filtered.length === 0) {
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+            emptyMsg.classList.add('hidden');
+
+            filtered.reverse().forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                tr.innerHTML = `
+                    <td class="p-4 text-slate-400">${r.time || '-'}</td>
+                    <td class="p-4 font-semibold text-slate-100">${r.name}</td>
+                    <td class="p-4 text-slate-300">${r.grade}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded bg-slate-800 font-mono text-[11px] text-cyan-300 border border-slate-700">${r.level}</span></td>
+                    <td class="p-4 font-bold ${r.score >= 6 ? 'text-emerald-400' : 'text-rose-400'}">${r.score} / 10</td>
+                    <td class="p-4">
+                        ${r.status === 'PASSED' 
+                            ? '<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-full text-[10px] font-bold">ผ่านเกณฑ์</span>' 
+                            : '<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-1 rounded-full text-[10px] font-bold">ไม่ผ่าน</span>'}
+                    </td>
+                    <td class="p-4 font-bold text-amber-400">${r.reward > 0 ? r.reward + ' ใบ' : '-'}</td>
+                    <td class="p-4 font-mono font-bold text-amber-300">${r.code}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportToCSV() {
+            const records = getRecords();
+            if (records.length === 0) {
+                alert("ไม่มีข้อมูลสำหรับส่งออก");
+                return;
+            }
+
+            let csv = "\uFEFFเวลา,ชื่อ-นามสกุล,ชั้น/ห้อง,ระดับ,คะแนน,สถานะ,ตังค่ายที่ได้,รหัสอ้างอิง\n";
+            records.forEach(r => {
+                csv += `"${r.time}","${r.name}","${r.grade}","${r.level}","${r.score}","${r.status}","${r.reward}","${r.code}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `cs_camp_results_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearData() {
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลผู้สอบทั้งหมด? (ไม่สามารถกู้คืนได้)")) {
+                localStorage.removeItem('cs_camp_all_records');
+                renderTable();
+            }
+        }
+    </script>
+</body>
+</html>
